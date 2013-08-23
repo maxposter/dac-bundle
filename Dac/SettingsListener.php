@@ -39,10 +39,8 @@ class SettingsListener
         $settings = new Settings();
 
         if ($this->session->has('maxposter.dac.settings')) {
-            var_dump('has session data');
             $params = $this->session->get('maxposter.dac.settings', array());
         } else {
-            var_dump('need to load data');
             $params = $this->loadDacSettings();
             $this->session->set('maxposter.dac.settings', $params);
         }
@@ -63,7 +61,6 @@ class SettingsListener
         if ($token && $token->isAuthenticated() && (!$this->security->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
             return;
         }
-        var_dump('Go next');
 
         $this->dac->setSettings($this->makeDacSettings());
         $this->dac->enable();

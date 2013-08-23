@@ -400,11 +400,11 @@ class EventSubscriber implements EventSubscriberInterface
         $uow = $em->getUnitOfWork();
         foreach ($uow->getScheduledCollectionDeletions() as $col) {
             // FIXME: надо понять как это (коллекции) работает
-            //var_dump(get_class($col));
+            throw new \Exception('getScheduledCollectionDeletions не обрабатывается в ' . __CLASS__);
         }
 
         foreach ($uow->getScheduledCollectionUpdates() as $col) {
-            //var_dump(get_class($col));
+            throw new \Exception('getScheduledCollectionUpdates не обрабатывается в ' . __CLASS__);
         }
     }
 }
