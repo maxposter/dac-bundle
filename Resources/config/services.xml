@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="maxposter.dac.annotations_cache_warmer.class">Maxposter\DacBundle\Annotations\CacheWarmer\AnnotationsCacheWarmer</parameter>
+        <parameter key="maxposter.dac.annotation_driver.class">Maxposter\DacBundle\Annotations\Mapping\Driver\Annotations</parameter>
+        <parameter key="maxposter.dac.annotations.class">Maxposter\DacBundle\Annotations\Mapping\Service\Annotations</parameter>
+        <parameter key="maxposter.dac.event_subscriber.class">Maxposter\DacBundle\Dac\EventSubscriber</parameter>
+        <parameter key="maxposter.dac.settings_listener.class">Maxposter\DacBundle\Dac\SettingsListener</parameter>
+        <parameter key="maxposter.dac.dac.class">Maxposter\DacBundle\Dac\Dac</parameter>
+    </parameters>
+
+    <services>
+        <service id="maxposter.dac.annotations_cache_warmer" class="%maxposter.dac.annotations_cache_warmer.class%" public="false">
+            <tag name="kernel.cache_warmer" />
+            <argument type="service" id="maxposter.dac.annotations" />
+        </service>
+
+        <service id="maxposter.dac.annotation_driver" class="%maxposter.dac.annotation_driver.class%" public="false">
+            <argument type="service" id="annotation_reader" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
+        </service>
+        <service id="maxposter.dac.annotations" class="%maxposter.dac.annotations.class%">
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <argument type="service" id="maxposter.dac.annotation_driver" />
+            <argument>%kernel.cache_dir%</argument>
+        </service>
+
+        <service id="maxposter.dac.event_subscriber" class="%maxposter.dac.event_subscriber.class%">
+            <argument type="service" id="maxposter.dac.annotations" />
+            <tag name="doctrine.event_subscriber" connection="default" />
+        </service>
+
+        <service id="maxposter.dac.settings_listener" class="%maxposter.dac.settings_listener.class%">
+            <argument type="service" id="maxposter.dac.dac" />
+            <argument type="service" id="maxposter.dac.annotations" />
+            <argument type="service" id="security.context" />
+            <argument type="service" id="session" />
+            <!-- FIXME: compilerpass отлично справляется с такими задачами: -->
+            <!--<argument type="service" id="maxposter.dac.settings_provider" />-->
+            <tag name="kernel.event_listener" event="kernel.request" method="onAuthorization" priority="7" />
+        </service>
+
+        <service id="maxposter.dac.dac" class="%maxposter.dac.dac.class%">
+            <argument type="service" id="doctrine" />
+            <argument type="service" id="maxposter.dac.event_subscriber" />
+            <argument type="service" id="maxposter.dac.annotations" />
+        </service>
+    </services>
+</container>
