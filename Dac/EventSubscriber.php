@@ -1,15 +1,13 @@
 <?php
 namespace Maxposter\DacBundle\Dac;
 
-use Doctrine\Common\Annotations\Annotation;
 use Doctrine\Common\EventSubscriber as EventSubscriberInterface;
-use Doctrine\ORM\EntityManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Doctrine\ORM\Events;
 /* use Doctrine\Common\Persistence\Event\LifecycleEventArgs; */
 /* use Doctrine\ORM\Event\LifecycleEventArgs; */
 /* use Doctrine\ORM\Event\PreFlushEventArgs; */
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Proxy\Proxy as DoctrineProxy;
@@ -22,6 +20,8 @@ use Maxposter\DacBundle\Dac\Exception\Event as EventException;
  */
 class EventSubscriber implements EventSubscriberInterface
 {
+    /** @var \Symfony\Component\DependencyInjection\ContainerInterface  */
+    private $container;
     /** @var \Maxposter\DacBundle\Annotations\Mapping\Service\Annotations */
     private $annotations;
     /** @var \Maxposter\DacBundle\Dac\Settings */
@@ -33,11 +33,13 @@ class EventSubscriber implements EventSubscriberInterface
     /**
      * Конструктор
      *
-     * @param  \Maxposter\DacBundle\Annotations\Mapping\Service\Annotations  $annotations
+     * @param  \Symfony\Component\DependencyInjection\ContainerInterface  $container
      */
-    public function __construct(Annotations $annotations)
+    public function __construct(ContainerInterface $container)
     {
-        $this->annotations = $annotations;
+        // @see http://stackoverflow.com/questions/8708822/circular-reference-when-injecting-security-context-into-entity-listener-class
+        $this->container = $container;
+        //$this->annotations = $annotations;
     }
 
 
@@ -75,6 +77,10 @@ class EventSubscriber implements EventSubscriberInterface
      */
     private function getAnnotations()
     {
+        if (!$this->annotations) {
+            $this->annotations = $this->container->get('maxposter.dac.annotations');
+        }
+
         return $this->annotations;
     }
 
