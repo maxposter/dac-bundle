@@ -45,8 +45,7 @@
             <argument type="service" id="maxposter.dac.annotations" />
             <argument type="service" id="security.context" />
             <argument type="service" id="session" />
-            <!-- FIXME: compilerpass отлично справляется с такими задачами: -->
-            <!--<argument type="service" id="maxposter.dac.settings_provider" />-->
+            <!-- Пятый аргумент подставляется автоматически -->
             <tag name="kernel.event_listener" event="kernel.request" method="onAuthorization" priority="7" />
         </service>
 

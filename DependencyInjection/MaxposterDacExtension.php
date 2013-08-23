@@ -6,6 +6,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * This is the class that loads and manages your bundle configuration
@@ -24,5 +25,17 @@ class MaxposterDacExtension extends Extension
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
+
+        // Наверное это не нужно, т.к. есть валидатор
+        if (!isset($config['settings_provider_id'])) {
+            throw new \InvalidArgumentException(
+                'The "settings_provider_id" option must be set'
+            );
+        }
+
+        $container
+                ->getDefinition('maxposter.dac.settings_listener')
+                ->addArgument(new Reference($config['settings_provider_id']))
+        ;
     }
 }
