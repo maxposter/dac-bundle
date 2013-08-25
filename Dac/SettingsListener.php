@@ -58,11 +58,35 @@ class SettingsListener
 
         // Обрабатываем только авторизованных (в человеческом понимании) пользователей
         $token = $this->security->getToken();
-        if ($token && $token->isAuthenticated() && (!$this->security->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
+        if (!$token) {
+            // FIXME: в веб-дебаг тулбаре нет токена (если веб-дебаг на другом (пустом) файрволе), как следствие нельзя чистить сессию
             return;
+        }
+
+        if ($token->isAuthenticated() && (!$this->security->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
+            $this->session->remove('maxposter.dac.user');
+            $this->session->remove('maxposter.dac.settings');
+            return;
+        }
+
+        if ($token->getUsername() != $this->session->get('maxposter.dac.user', '')) {
+            $this->session->remove('maxposter.dac.settings');
+            $this->session->set('maxposter.dac.user', $token->getUsername());
         }
 
         $this->dac->setSettings($this->makeDacSettings());
         $this->dac->enable();
+    }
+
+
+    /**
+     * @param \Symfony\Component\Security\Http\Event\SwitchUserEvent $event
+     */
+    public function onSecuritySwitchUser(\Symfony\Component\Security\Http\Event\SwitchUserEvent $event)
+    {
+        $this->session->remove('maxposter.dac.user');
+        $this->session->remove('maxposter.dac.settings');
+
+        $this->dac->setSettings($this->makeDacSettings());
     }
 }
