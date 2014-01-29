@@ -57,7 +57,11 @@ class Dac
 
     public function disable()
     {
-        $this->doctrine->getManager()->getFilters()->disable(static::SQL_FILTER_NAME);
+        /** @var $filters \Doctrine\ORM\Query\FilterCollection */
+        $filters = $this->doctrine->getManager()->getFilters();
+        if ($filters->has(static::SQL_FILTER_NAME) && $filters->isEnabled(static::SQL_FILTER_NAME)) {
+            $filters->disable(static::SQL_FILTER_NAME);
+        }
 
         /** @var \Doctrine\Common\EventManager $evm */
         $evm = $this->doctrine->getManager()->getEventManager();
