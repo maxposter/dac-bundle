@@ -1,23 +1,24 @@
 <?php
 namespace Maxposter\DacBundle\Dac;
 
-use \Doctrine\ORM\Mapping\ClassMetadata;
-use \Doctrine\DBAL\Connection;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\DBAL\Connection;
 use Maxposter\DacBundle\Annotations\Mapping\Service\Annotations;
+use Symfony\Component\Security\Core\SecurityContextInterface;
 
 /**
  * @package Maxposter\DacBundle\SqlFilter
  */
 class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
 {
+    /** @var Settings */
+    private $dacSettings;
 
-    private
-        /** @var Settings */
-        $dacSettings,
+    /** @var Annotations */
+    private $annotations;
 
-        /** @var Annotations */
-        $annotations
-    ;
+    /** @var SecurityContextInterface */
+    private $security;
 
     /**
      * Установка объекта со значениями DAC-аннотаций
@@ -71,6 +72,19 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
         return $this->dacSettings;
     }
 
+
+    public function setSecurityContext(SecurityContextInterface $security)
+    {
+        $this->security = $security;
+    }
+
+
+    private function getSecurity()
+    {
+        return $this->security;
+    }
+
+
     /**
      * Модификация SQL-запроса
      *
@@ -88,8 +102,15 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
         }
 
         $dacFields = $annotation->getDacFields($entityName);
+        $requireDac = true;
         $conditions = array();
         foreach ($dacFields as $filteredFieldName => $dacSettingsName) {
+            $roles = $annotation->getDacRolesFor($entityName, $filteredFieldName);
+            if (!empty($roles) && $this->getSecurity()->isGranted($roles)) {
+                $requireDac = false;
+                continue;
+            }
+
             $filteredColumnName = $this->getColumnName($filteredFieldName, $targetEntity);
             $dacSettingsValue   = $this->getDacSettings()->get($dacSettingsName);
             if ($dacSettingsValue) {
@@ -102,9 +123,10 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
             }
         }
 
+        $result = '';
         if ($conditions) {
             $result = sprintf('((%s))', implode(') OR (', $conditions));
-        } else {
+        } elseif ($requireDac) {
             $result = '1=2';
         }
 
@@ -114,9 +136,9 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
     /**
      * Получение названия поля в таблице в БД по названию параметра в сущности
      *
-     * @param string $fieldName     Название параметра в сущности
-     * @param ClassMetadata $targetEntity
-     * @return string Искомое       Название поля в БД
+     * @param  string        $fieldName     Название свойства
+     * @param  ClassMetadata $targetEntity
+     * @return string        Искомое название поля в БД
      * @throws Exceptions
      * fixme: Нужны тесты на разное поведение метода
      */

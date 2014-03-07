@@ -39,11 +39,12 @@ class Annotations
         if (!$this->map && (null !== $this->cacheDir) && is_file($filePath = sprintf('%s/maxposter.dac.annotations.cache', $this->cacheDir))) {
             $this->map = (array) unserialize(file_get_contents($filePath));
         } elseif (!$this->map) {
-            $this->map = array();
+            $this->map = array('fields' => array(), 'roles' => array());
             foreach ($this->em->getConfiguration()->getMetadataDriverImpl()->getAllClassNames() as $className) {
                 // Кешируем только энтити с аннотациями
-                if ($columns = $this->driver->getAnnotatedColumns($className)) {
-                    $this->map[$className] = $columns;
+                if ($data = $this->driver->getData($className)) {
+                    $this->map['fields'][$className] = $data['columns'];
+                    $this->map['roles'][$className] = $data['roles'];
                 }
             }
         }
@@ -69,7 +70,7 @@ class Annotations
     {
         $this->load();
 
-        return array_key_exists($className, $this->map) && $this->map[$className];
+        return array_key_exists($className, $this->map['fields']) && $this->map['fields'][$className];
     }
 
 
@@ -81,6 +82,20 @@ class Annotations
     {
         $this->load();
 
-        return $this->hasDacFields($className) ? $this->map[$className] : array();
+        return $this->hasDacFields($className) ? $this->map['fields'][$className] : array();
+    }
+
+
+    public function getDacRolesFor($className, $property)
+    {
+        return
+            (
+                array_key_exists($className, $this->map['roles'])
+                && is_array($this->map['roles'][$className])
+                && array_key_exists($property, $this->map['roles'][$className])
+            )
+            ? $this->map['roles'][$className][$property]
+            : array()
+        ;
     }
 }

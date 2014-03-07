@@ -17,11 +17,11 @@ class Annotations
     }
 
 
-    public function getAnnotatedColumns($className)
+    public function getData($className)
     {
         $meta = $this->em->getClassMetadata($className);
         $props = $meta->getReflectionProperties();
-        $result = array();
+        $result = array('columns' => array(), 'roles' => array());
         /** @var  $prop  \ReflectionProperty */
         foreach ($props as $prop) {
             /** @var  $annotation  \Maxposter\DacBundle\Annotations\Mapping\Filter */
@@ -49,7 +49,9 @@ class Annotations
 
                     $target = $annotation->targetEntity;
                 }
-                $result[$prop->getName()] = $target;
+
+                $result['columns'][$prop->getName()] = $target;
+                $result['roles'][$prop->getName()] = (array) $annotation->role;
             }
         }
 

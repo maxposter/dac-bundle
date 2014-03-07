@@ -75,6 +75,7 @@ class SettingsListener
         }
 
         $this->dac->setSettings($this->makeDacSettings());
+        $this->dac->setSecurityContext($this->security);
         $this->dac->enable();
     }
 

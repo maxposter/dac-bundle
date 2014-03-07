@@ -3,6 +3,7 @@ namespace Maxposter\DacBundle\Dac;
 
 use Doctrine\Common\EventSubscriber as EventSubscriberInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\SecurityContextInterface;
 use Doctrine\ORM\Events;
 /* use Doctrine\Common\Persistence\Event\LifecycleEventArgs; */
 /* use Doctrine\ORM\Event\LifecycleEventArgs; */
@@ -11,6 +12,7 @@ use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Proxy\Proxy as DoctrineProxy;
+
 use Maxposter\DacBundle\Annotations\Mapping\Service\Annotations;
 use Maxposter\DacBundle\Dac\Exception\Event as EventException;
 
@@ -22,6 +24,8 @@ class EventSubscriber implements EventSubscriberInterface
 {
     /** @var \Symfony\Component\DependencyInjection\ContainerInterface  */
     private $container;
+    /** @var \Symfony\Component\Security\Core\SecurityContextInterface */
+    private $security;
     /** @var \Maxposter\DacBundle\Annotations\Mapping\Service\Annotations */
     private $annotations;
     /** @var \Maxposter\DacBundle\Dac\Settings */
@@ -82,6 +86,30 @@ class EventSubscriber implements EventSubscriberInterface
         }
 
         return $this->annotations;
+    }
+
+
+    /**
+     * @return SecurityContextInterface
+     */
+    private function getSecurity()
+    {
+        if (!$this->security) {
+            $this->security = $this->container->get('security.context');
+        }
+
+        return $this->security;
+    }
+
+
+    private function isGranted(array $roles)
+    {
+        $ret = true;
+        if ($this->getSecurity()->getToken()) {
+            $ret = $this->getSecurity()->isGranted($roles);
+        }
+
+        return $ret;
     }
 
 
@@ -293,6 +321,11 @@ class EventSubscriber implements EventSubscriberInterface
 
             $classMetadata = $em->getClassMetadata($className);
             foreach ($annotations->getDacFields($classMetadata->getName()) as $filteredFieldName => $dacSettingsName) {
+                $roles = $annotations->getDacRolesFor($className, $filteredFieldName);
+                if (!empty($roles) && $this->isGranted($roles)) {
+                    continue;
+                }
+
                 // Пропускаем PrimaryKey
                 if ($filteredFieldName == $classMetadata->getSingleIdentifierColumnName()) {
                     continue;
@@ -339,6 +372,11 @@ class EventSubscriber implements EventSubscriberInterface
 
             $classMetadata = $em->getClassMetadata($className);
             foreach ($annotations->getDacFields($className) as $filteredFieldName => $dacSettingsName) {
+                $roles = $annotations->getDacRolesFor($className, $filteredFieldName);
+                if (!empty($roles) && $this->isGranted($roles)) {
+                    continue;
+                }
+
                 // primaryKey не пропускаем, т.к. есть значения
                 // Необходимо установить значение поля
                 if ($this->isEmptyEntityValue($entity, $filteredFieldName)) {
@@ -379,6 +417,11 @@ class EventSubscriber implements EventSubscriberInterface
 
             $classMetadata = $em->getClassMetadata($className);
             foreach ($annotations->getDacFields($className) as $filteredFieldName => $dacSettingsName) {
+                $roles = $annotations->getDacRolesFor($className, $filteredFieldName);
+                if (!empty($roles) && $this->isGranted($roles)) {
+                    continue;
+                }
+
                 $value = $this->getEntityColumnValue($entity, $filteredFieldName);
 
                 if (!$this->isValid($dacSettingsName, $value)) {
