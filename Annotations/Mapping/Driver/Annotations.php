@@ -41,7 +41,7 @@ class Annotations
                         throw MappingException::missingTargetEntity($prop->getName());
                     }
                 } else {
-                    if (false === strpos('\\', $annotation->targetEntity)) {
+                    if (false === strpos($annotation->targetEntity, '\\')) {
                         $nameParts = explode('\\', $meta->getName());
                         array_pop($nameParts);
                         $annotation->targetEntity = sprintf('%s\\%s', implode('\\', $nameParts), $annotation->targetEntity);
