@@ -10,6 +10,7 @@ use Doctrine\ORM\Events;
 /* use Doctrine\ORM\Event\PreFlushEventArgs; */
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Proxy\Proxy as DoctrineProxy;
 
