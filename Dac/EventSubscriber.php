@@ -62,13 +62,13 @@ class EventSubscriber implements EventSubscriberInterface
     /**
      * Настройки
      *
-     * @return \Maxposter\DacBundle\Dac\Settings
+     * @return \Maxposter\DacBundle\Dac\Settings|false
      * @throws Exception
      */
     private function getDacSettings()
     {
         if (is_null($this->dacSettings)) {
-            throw new Exception('Ошибка в инициализации SQL-фильтра: не заданы параметры фильтрации.', Exception::ERR_SQL_FILTER);
+            return false;
         }
 
         return $this->dacSettings;
@@ -123,6 +123,10 @@ class EventSubscriber implements EventSubscriberInterface
      */
     private function isValid($dacSettingsName, $value)
     {
+        if (!$this->getDacSettings()) {
+            return true;
+        }
+
         $dacSettingsValue = $this->getDacSettings()->get($dacSettingsName);
 
         if (is_array($value)) {
@@ -191,6 +195,10 @@ class EventSubscriber implements EventSubscriberInterface
      */
     private function getSingleSettingsValue($dacSettingsName)
     {
+        if (!$this->getDacSettings()) {
+            return null;
+        }
+
         $dacSettingsValue = $this->getDacSettings()->get($dacSettingsName);
         if ($dacSettingsValue && (1 === count($dacSettingsValue))) {
             $value = array_shift($dacSettingsValue);
@@ -298,9 +306,13 @@ class EventSubscriber implements EventSubscriberInterface
             } else {
                 $assocMetadata = $em->getClassMetadata($classMetadata->getAssociationTargetClass($property));
                 $columnName = $assocMapping['joinColumns']['0']['referencedColumnName'];
-                $reflectionProp = $assocMetadata->getReflectionProperty($assocMetadata->getFieldName($columnName));
+                $fieldName = $assocMetadata->getFieldForColumn($columnName);
+                $reflectionProp = $assocMetadata->getReflectionProperty($fieldName);
                 // Для проверки нужно получить идентификатор из связанной (родительской) записи
                 $value = $reflectionProp->getValue($value);
+                if (is_object($value) && $assocMetadata->hasAssociation($fieldName)) {
+                    $value = $this->getEntityColumnValue($value, $assocMetadata->getAssociationMapping($fieldName)['joinColumns']['0']['referencedColumnName']);
+                }
             }
         }
 
