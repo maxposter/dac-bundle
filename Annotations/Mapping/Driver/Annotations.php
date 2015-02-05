@@ -32,7 +32,7 @@ class Annotations
             if (null !== $annotation) {
                 // Если не задано значение
                 if (empty($annotation->targetEntity)) {
-                    if ($meta->getSingleIdentifierColumnName() == $prop->getName()) {
+                    if (!$meta->isIdentifierComposite && $meta->getSingleIdentifierColumnName() == $prop->getName()) {
                         $target = $className;
                     } elseif ($meta->hasAssociation($prop->getName())) {
                         $mapping = $meta->getAssociationMapping($prop->getName());
