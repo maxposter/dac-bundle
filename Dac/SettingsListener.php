@@ -89,5 +89,7 @@ class SettingsListener
         $this->session->remove('maxposter.dac.settings');
 
         $this->dac->setSettings($this->makeDacSettings());
+        $this->dac->setSecurityContext($this->security);
+        $this->dac->enable();
     }
 }
