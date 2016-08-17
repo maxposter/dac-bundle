@@ -23,7 +23,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url":  "https://github.com/avorobiev/dac_test.git"
+            "url":  "https://github.com/maxposter/dac_test.git"
         }
     ],
     "require-dev": {
