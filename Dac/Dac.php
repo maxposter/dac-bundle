@@ -52,6 +52,10 @@ class Dac
      */
     public function enable()
     {
+        if (!$this->security) {
+            return;
+        }
+
         // Включение SQL-фильтра
         $filters = $this->doctrine->getManager()->getFilters(); /** @var $filters \Doctrine\ORM\Query\FilterCollection */
         $filters->enable(static::SQL_FILTER_NAME);
