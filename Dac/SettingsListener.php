@@ -65,13 +65,20 @@ class SettingsListener
 
         if ($token->isAuthenticated() && (!$this->security->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
             $this->session->remove('maxposter.dac.user');
+            $this->session->remove('maxposter.dac.dealerEmployeeId');
             $this->session->remove('maxposter.dac.settings');
             return;
         }
 
         if ($token->getUsername() != $this->session->get('maxposter.dac.user', '')) {
             $this->session->remove('maxposter.dac.settings');
+            $this->session->remove('maxposter.dac.dealerEmployeeId');
             $this->session->set('maxposter.dac.user', $token->getUsername());
+        }
+
+        if ($token->getUser() && $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '')) {
+            $this->session->remove('maxposter.dac.settings');
+            $this->session->set('maxposter.dac.dealerEmployeeId', $token->getUser()->getCurrentDealerEmployeeId());
         }
 
         $this->dac->setSettings($this->makeDacSettings());
@@ -86,6 +93,7 @@ class SettingsListener
     public function onSecuritySwitchUser(\Symfony\Component\Security\Http\Event\SwitchUserEvent $event)
     {
         $this->session->remove('maxposter.dac.user');
+        $this->session->remove('maxposter.dac.dealerEmployeeId');
         $this->session->remove('maxposter.dac.settings');
 
         $this->dac->setSettings($this->makeDacSettings());
