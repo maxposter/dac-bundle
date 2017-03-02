@@ -182,7 +182,6 @@ class EventSubscriber implements EventSubscriberInterface
                 ($originalValue instanceof Collection)
                 && (0 === $originalValue->count())
             )
-            || ($originalValue instanceof DoctrineProxy)
         );
     }
 
