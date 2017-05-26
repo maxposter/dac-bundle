@@ -66,6 +66,7 @@ class SettingsListener
         if ($token->isAuthenticated() && (!$this->security->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
             $this->session->remove('maxposter.dac.user');
             $this->session->remove('maxposter.dac.dealerEmployeeId');
+            $this->session->remove('maxposter.dac.holdingEmployeeId');
             $this->session->remove('maxposter.dac.settings');
             return;
         }
@@ -73,12 +74,20 @@ class SettingsListener
         if ($token->getUsername() != $this->session->get('maxposter.dac.user', '')) {
             $this->session->remove('maxposter.dac.settings');
             $this->session->remove('maxposter.dac.dealerEmployeeId');
+            $this->session->remove('maxposter.dac.holdingEmployeeId');
             $this->session->set('maxposter.dac.user', $token->getUsername());
         }
 
-        if ($token->getUser() && $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '')) {
+        if (
+            $token->getUser() &&
+            (
+                $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '') ||
+                $token->getUser()->getCurrentHoldingEmployeeId() != $this->session->get('maxposter.dac.holdingEmployeeId', '')
+            )
+        ) {
             $this->session->remove('maxposter.dac.settings');
             $this->session->set('maxposter.dac.dealerEmployeeId', $token->getUser()->getCurrentDealerEmployeeId());
+            $this->session->set('maxposter.dac.holdingEmployeeId', $token->getUser()->getCurrentHoldingEmployeeId());
         }
 
         $this->dac->setSettings($this->makeDacSettings());
@@ -94,6 +103,7 @@ class SettingsListener
     {
         $this->session->remove('maxposter.dac.user');
         $this->session->remove('maxposter.dac.dealerEmployeeId');
+        $this->session->remove('maxposter.dac.holdingEmployeeId');
         $this->session->remove('maxposter.dac.settings');
 
         $this->dac->setSettings($this->makeDacSettings());
