@@ -3,7 +3,8 @@ namespace Maxposter\DacBundle\Dac;
 
 use Doctrine\Common\EventSubscriber as EventSubscriberInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\Events;
 /* use Doctrine\Common\Persistence\Event\LifecycleEventArgs; */
 /* use Doctrine\ORM\Event\LifecycleEventArgs; */
@@ -25,8 +26,10 @@ class EventSubscriber implements EventSubscriberInterface
 {
     /** @var \Symfony\Component\DependencyInjection\ContainerInterface  */
     private $container;
-    /** @var \Symfony\Component\Security\Core\SecurityContextInterface */
-    private $security;
+    /** @var TokenStorageInterface */
+    private $tokenStorage;
+    /** @var AuthorizationCheckerInterface */
+    private $authChecker;
     /** @var \Maxposter\DacBundle\Annotations\Mapping\Service\Annotations */
     private $annotations;
     /** @var \Maxposter\DacBundle\Dac\Settings */
@@ -89,25 +92,36 @@ class EventSubscriber implements EventSubscriberInterface
         return $this->annotations;
     }
 
-
     /**
-     * @return SecurityContextInterface
+     * @return TokenStorageInterface
      */
-    private function getSecurity()
+    private function getTokenStorage()
     {
-        if (!$this->security) {
-            $this->security = $this->container->get('security.context');
+        if (!$this->tokenStorage) {
+            $this->tokenStorage = $this->container->get('security.token_storage');
         }
 
-        return $this->security;
+        return $this->tokenStorage;
+    }
+
+    /**
+     * @return AuthorizationCheckerInterface
+     */
+    private function getAuthorizationChecker()
+    {
+        if (!$this->authChecker) {
+            $this->authChecker = $this->container->get('security.authorization_checker');
+        }
+
+        return $this->authChecker;
     }
 
 
     private function isGranted(array $roles)
     {
         $ret = true;
-        if ($this->getSecurity()->getToken()) {
-            $ret = $this->getSecurity()->isGranted($roles);
+        if ($this->getTokenStorage()->getToken()) {
+            $ret = $this->getAuthorizationChecker()->isGranted($roles);
         }
 
         return $ret;
@@ -458,14 +472,15 @@ class EventSubscriber implements EventSubscriberInterface
         // DELETE
         $this->processEntityDeletions();
 
-        $uow = $em->getUnitOfWork();
-        foreach ($uow->getScheduledCollectionDeletions() as $col) {
-            // FIXME: надо понять как это (коллекции) работает
-            throw new \Exception('getScheduledCollectionDeletions не обрабатывается в ' . __CLASS__);
-        }
-
-        foreach ($uow->getScheduledCollectionUpdates() as $col) {
-            throw new \Exception('getScheduledCollectionUpdates не обрабатывается в ' . __CLASS__);
-        }
+        // После обновление до Doctrine 2.5 сюда стали поподатья коллекции из связанных сущностей, пока выпиливаем
+//        $uow = $em->getUnitOfWork();
+//        foreach ($uow->getScheduledCollectionDeletions() as $col) {
+//            // FIXME: надо понять как это (коллекции) работает
+//            throw new \Exception('getScheduledCollectionDeletions не обрабатывается в ' . __CLASS__);
+//        }
+//
+//        foreach ($uow->getScheduledCollectionUpdates() as $col) {
+//            throw new \Exception('getScheduledCollectionUpdates не обрабатывается в ' . __CLASS__);
+//        }
     }
 }

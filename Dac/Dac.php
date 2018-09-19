@@ -5,7 +5,7 @@ namespace Maxposter\DacBundle\Dac;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Maxposter\DacBundle\Annotations\Mapping\Service\Annotations;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class Dac
 {
@@ -23,8 +23,8 @@ class Dac
     /** @var \Maxposter\DacBundle\Annotations\Mapping\Service\Annotations */
     private $annotations;
 
-    /** @var \Symfony\Component\Security\Core\SecurityContextInterface */
-    private $security;
+    /** @var AuthorizationCheckerInterface */
+    private $authChecker;
 
 
     /**
@@ -52,7 +52,7 @@ class Dac
      */
     public function enable()
     {
-        if (!$this->security) {
+        if (!$this->authChecker) {
             return;
         }
 
@@ -62,7 +62,7 @@ class Dac
         $filter = $filters->getFilter(static::SQL_FILTER_NAME); /** @var $filter \Maxposter\DacBundle\Dac\SQLFilter */
         $filter->setDacSettings($this->getSettings());
         $filter->setAnnotations($this->annotations);
-        $filter->setSecurityContext($this->security);
+        $filter->setAuthorizationChecker($this->authChecker);
 
         $this->eventSubscriber->setDacSettings($this->getSettings());
         /** @var \Doctrine\Common\EventManager $evm */
@@ -112,12 +112,12 @@ class Dac
     /**
      * Безопасность
      *
-     * @param  SecurityContextInterface  $security
+     * @param  AuthorizationCheckerInterface  $authChecker
      * @return void
      */
-    public function setSecurityContext(SecurityContextInterface $security)
+    public function setAuthorizationChecker(AuthorizationCheckerInterface $authChecker)
     {
-        $this->security = $security;
+        $this->authChecker = $authChecker;
     }
 
 }

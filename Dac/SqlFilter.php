@@ -4,7 +4,7 @@ namespace Maxposter\DacBundle\Dac;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\DBAL\Connection;
 use Maxposter\DacBundle\Annotations\Mapping\Service\Annotations;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @package Maxposter\DacBundle\SqlFilter
@@ -17,8 +17,8 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
     /** @var Annotations */
     private $annotations;
 
-    /** @var SecurityContextInterface */
-    private $security;
+    /** @var AuthorizationCheckerInterface */
+    private $authChecker;
 
     /**
      * Установка объекта со значениями DAC-аннотаций
@@ -73,15 +73,15 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
     }
 
 
-    public function setSecurityContext(SecurityContextInterface $security)
+    public function setAuthorizationChecker(AuthorizationCheckerInterface $authChecker)
     {
-        $this->security = $security;
+        $this->authChecker = $authChecker;
     }
 
 
-    private function getSecurity()
+    private function getAuthorizationChecker()
     {
-        return $this->security;
+        return $this->authChecker;
     }
 
 
@@ -106,7 +106,7 @@ class SqlFilter extends \Doctrine\ORM\Query\Filter\SQLFilter
         $conditions = array();
         foreach ($dacFields as $filteredFieldName => $dacSettingsName) {
             $roles = $annotation->getDacRolesFor($entityName, $filteredFieldName);
-            if (!empty($roles) && $this->getSecurity()->isGranted($roles)) {
+            if (!empty($roles) && $this->getAuthorizationChecker()->isGranted($roles)) {
                 $requireDac = false;
                 continue;
             }
