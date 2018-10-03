@@ -43,7 +43,8 @@
         <service id="maxposter.dac.settings_listener" class="%maxposter.dac.settings_listener.class%">
             <argument type="service" id="maxposter.dac.dac" />
             <argument type="service" id="maxposter.dac.annotations" />
-            <argument type="service" id="security.context" />
+            <argument type="service" id="security.authorization_checker" />
+            <argument type="service" id="security.token_storage" />
             <argument type="service" id="session" />
             <!-- Пятый аргумент подставляется автоматически -->
             <tag name="kernel.event_listener" event="kernel.request" method="onAuthorization" priority="7" />

@@ -6,7 +6,8 @@ use Maxposter\DacBundle\Annotations\Mapping\Service\Annotations;
 use Maxposter\DacBundle\Dac\Dac;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -15,14 +16,17 @@ class SettingsListener
     private $dac;
     private $annotations;
     private $security;
+    private $authChecker;
+    private $tokenStorage;
     private $session;
     private $provider;
 
-    public function __construct(Dac $dac, Annotations $annotations, SecurityContextInterface $security, SessionInterface $session, SettingsProviderInterface $provider)
+    public function __construct(Dac $dac, Annotations $annotations, AuthorizationCheckerInterface $authChecker, TokenStorageInterface $tokenStorage, SessionInterface $session, SettingsProviderInterface $provider)
     {
         $this->dac          = $dac;
         $this->annotations  = $annotations;
-        $this->security     = $security;
+        $this->authChecker  = $authChecker;
+        $this->tokenStorage = $tokenStorage;
         $this->session      = $session;
         $this->provider     = $provider;
     }
@@ -57,13 +61,13 @@ class SettingsListener
         }
 
         // Обрабатываем только авторизованных (в человеческом понимании) пользователей
-        $token = $this->security->getToken();
+        $token = $this->tokenStorage->getToken();
         if (!$token) {
             // FIXME: в веб-дебаг тулбаре нет токена (если веб-дебаг на другом (пустом) файрволе), как следствие нельзя чистить сессию
             return;
         }
 
-        if ($token->isAuthenticated() && (!$this->security->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
+        if ($token->isAuthenticated() && (!$this->authChecker->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
             $this->session->remove('maxposter.dac.user');
             $this->session->remove('maxposter.dac.dealerEmployeeId');
             $this->session->remove('maxposter.dac.holdingEmployeeId');
@@ -91,7 +95,7 @@ class SettingsListener
         }
 
         $this->dac->setSettings($this->makeDacSettings());
-        $this->dac->setSecurityContext($this->security);
+        $this->dac->setAuthorizationChecker($this->authChecker);
         $this->dac->enable();
     }
 
@@ -107,7 +111,7 @@ class SettingsListener
         $this->session->remove('maxposter.dac.settings');
 
         $this->dac->setSettings($this->makeDacSettings());
-        $this->dac->setSecurityContext($this->security);
+        $this->dac->setAuthorizationChecker($this->authChecker);
         $this->dac->enable();
     }
 }
