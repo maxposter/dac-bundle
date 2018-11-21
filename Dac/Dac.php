@@ -117,6 +117,9 @@ class Dac
         if (!array_key_exists($savePoint, $this->savePoints)) {
             return;
         }
+        if ($this->enabled === $this->savePoints[$savePoint]) {
+            return;
+        }
         $oldSavePoint = $this->savePoints[$savePoint];
         if ($this->savePoints[$savePoint]) {
             $this->enable($savePoint);
