@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 class Dac
 {
     const SQL_FILTER_NAME = 'dac_sql_filter';
+    const DEFAULT_SAVE_POINT = 'dac_default_save_point';
 
     /* @var \Doctrine\Bundle\DoctrineBundle\Registry */
     private $doctrine;
@@ -25,6 +26,12 @@ class Dac
 
     /** @var AuthorizationCheckerInterface */
     private $authChecker;
+
+    /** @var bool */
+    private $enabled;
+
+    /** @var bool[] */
+    private $savePoints = [];
 
 
     /**
@@ -44,13 +51,17 @@ class Dac
             static::SQL_FILTER_NAME, 'Maxposter\\DacBundle\\Dac\\SqlFilter'
         );
         $this->annotations = $annotations;
+        $this->enabled = false;
+        $this->savePoints[self::DEFAULT_SAVE_POINT] = false;
     }
 
 
     /**
      * Включить фильтрацию
+     *
+     * @param string $savePoint Название точки сохранения предыдущего состояния
      */
-    public function enable()
+    public function enable($savePoint = self::DEFAULT_SAVE_POINT)
     {
         if (!$this->authChecker) {
             return;
@@ -68,13 +79,18 @@ class Dac
         /** @var \Doctrine\Common\EventManager $evm */
         $evm = $this->doctrine->getManager()->getEventManager();
         $evm->addEventSubscriber($this->eventSubscriber);
+
+        $this->savePoints[$savePoint] = $this->enabled;
+        $this->enabled = true;
     }
 
 
     /**
      * Выключить фильтрацию (глобально)
+     *
+     * @param string $savePoint Название точки сохранения предыдущего состояния
      */
-    public function disable()
+    public function disable($savePoint = self::DEFAULT_SAVE_POINT)
     {
         /** @var $filters \Doctrine\ORM\Query\FilterCollection */
         $filters = $this->doctrine->getManager()->getFilters();
@@ -85,6 +101,29 @@ class Dac
         /** @var \Doctrine\Common\EventManager $evm */
         $evm = $this->doctrine->getManager()->getEventManager();
         $evm->removeEventSubscriber($this->eventSubscriber);
+
+        $this->savePoints[$savePoint] = $this->enabled;
+        $this->enabled = false;
+    }
+
+
+    /**
+     * Восстанавливает сохраненное сотояние активности фильтров
+     *
+     * @param string $savePoint Название точки сохранения предыдущего состояния
+     */
+    public function restore($savePoint)
+    {
+        if (!array_key_exists($savePoint, $this->savePoints)) {
+            return;
+        }
+        $oldSavePoint = $this->savePoints[$savePoint];
+        if ($this->savePoints[$savePoint]) {
+            $this->enable($savePoint);
+        } else {
+            $this->disable($savePoint);
+        }
+        $this->savePoints[$savePoint] = $oldSavePoint;
     }
 
 
