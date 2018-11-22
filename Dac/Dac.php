@@ -115,7 +115,7 @@ class Dac
     public function restore($savePoint)
     {
         if (!array_key_exists($savePoint, $this->savePoints)) {
-            return;
+            throw new \InvalidArgumentException(sprintf('Не найдена точка сохранения "%s"', $savePoint));
         }
         if ($this->enabled === $this->savePoints[$savePoint]) {
             return;
