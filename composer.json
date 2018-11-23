@@ -18,7 +18,10 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=7.2"
+        "php": ">=7.2",
+        "doctrine/orm": "~2.5",
+        "doctrine/doctrine-bundle": "~1.9",
+        "symfony/symfony": "~3.4"
     },
     "repositories": [
         {
