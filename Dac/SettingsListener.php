@@ -42,7 +42,9 @@ class SettingsListener
     {
         $settings = new Settings();
 
-        if ($this->session->has('maxposter.dac.settings')) {
+        if (!$this->dac->isSessionEnabled()) {
+            $params = $this->loadDacSettings();
+        } elseif ($this->session->has('maxposter.dac.settings')) {
             $params = $this->session->get('maxposter.dac.settings', array());
         } else {
             $params = $this->loadDacSettings();
@@ -67,31 +69,33 @@ class SettingsListener
             return;
         }
 
-        if ($token->isAuthenticated() && (!$this->authChecker->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
-            $this->session->remove('maxposter.dac.user');
-            $this->session->remove('maxposter.dac.dealerEmployeeId');
-            $this->session->remove('maxposter.dac.holdingEmployeeId');
-            $this->session->remove('maxposter.dac.settings');
-            return;
-        }
+        if ($this->dac->isSessionEnabled()) {
+            if ($token->isAuthenticated() && (!$this->authChecker->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
+                $this->session->remove('maxposter.dac.user');
+                $this->session->remove('maxposter.dac.dealerEmployeeId');
+                $this->session->remove('maxposter.dac.holdingEmployeeId');
+                $this->session->remove('maxposter.dac.settings');
+                return;
+            }
 
-        if ($token->getUsername() != $this->session->get('maxposter.dac.user', '')) {
-            $this->session->remove('maxposter.dac.settings');
-            $this->session->remove('maxposter.dac.dealerEmployeeId');
-            $this->session->remove('maxposter.dac.holdingEmployeeId');
-            $this->session->set('maxposter.dac.user', $token->getUsername());
-        }
+            if ($token->getUsername() != $this->session->get('maxposter.dac.user', '')) {
+                $this->session->remove('maxposter.dac.settings');
+                $this->session->remove('maxposter.dac.dealerEmployeeId');
+                $this->session->remove('maxposter.dac.holdingEmployeeId');
+                $this->session->set('maxposter.dac.user', $token->getUsername());
+            }
 
-        if (
-            $token->getUser() &&
-            (
-                $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '') ||
-                $token->getUser()->getCurrentHoldingEmployeeId() != $this->session->get('maxposter.dac.holdingEmployeeId', '')
-            )
-        ) {
-            $this->session->remove('maxposter.dac.settings');
-            $this->session->set('maxposter.dac.dealerEmployeeId', $token->getUser()->getCurrentDealerEmployeeId());
-            $this->session->set('maxposter.dac.holdingEmployeeId', $token->getUser()->getCurrentHoldingEmployeeId());
+            if (
+                $token->getUser() &&
+                (
+                    $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '') ||
+                    $token->getUser()->getCurrentHoldingEmployeeId() != $this->session->get('maxposter.dac.holdingEmployeeId', '')
+                )
+            ) {
+                $this->session->remove('maxposter.dac.settings');
+                $this->session->set('maxposter.dac.dealerEmployeeId', $token->getUser()->getCurrentDealerEmployeeId());
+                $this->session->set('maxposter.dac.holdingEmployeeId', $token->getUser()->getCurrentHoldingEmployeeId());
+            }
         }
 
         $this->dac->setSettings($this->makeDacSettings());
@@ -105,10 +109,12 @@ class SettingsListener
      */
     public function onSecuritySwitchUser(\Symfony\Component\Security\Http\Event\SwitchUserEvent $event)
     {
-        $this->session->remove('maxposter.dac.user');
-        $this->session->remove('maxposter.dac.dealerEmployeeId');
-        $this->session->remove('maxposter.dac.holdingEmployeeId');
-        $this->session->remove('maxposter.dac.settings');
+        if ($this->dac->isSessionEnabled()) {
+            $this->session->remove('maxposter.dac.user');
+            $this->session->remove('maxposter.dac.dealerEmployeeId');
+            $this->session->remove('maxposter.dac.holdingEmployeeId');
+            $this->session->remove('maxposter.dac.settings');
+        }
 
         $this->dac->setSettings($this->makeDacSettings());
         $this->dac->setAuthorizationChecker($this->authChecker);

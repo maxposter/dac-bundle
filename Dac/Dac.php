@@ -33,6 +33,9 @@ class Dac
     /** @var bool[] */
     private $savePoints = [];
 
+    /** @var bool */
+    private $sessionEnabled;
+
 
     /**
      * @param Registry        $doctrine
@@ -53,6 +56,7 @@ class Dac
         $this->annotations = $annotations;
         $this->enabled = false;
         $this->savePoints[self::DEFAULT_SAVE_POINT] = false;
+        $this->sessionEnabled = true;
     }
 
 
@@ -161,5 +165,24 @@ class Dac
     {
         $this->authChecker = $authChecker;
     }
+
+    /**
+     * @return bool
+     */
+    public function isSessionEnabled(): bool
+    {
+        return $this->sessionEnabled;
+    }
+
+    /**
+     * @param bool $sessionEnabled
+     * @return Dac
+     */
+    public function setSessionEnabled(bool $sessionEnabled): self
+    {
+        $this->sessionEnabled = $sessionEnabled;
+        return $this;
+    }
+
 
 }
