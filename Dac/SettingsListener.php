@@ -74,6 +74,7 @@ class SettingsListener
                 $this->session->remove('maxposter.dac.user');
                 $this->session->remove('maxposter.dac.dealerEmployeeId');
                 $this->session->remove('maxposter.dac.holdingEmployeeId');
+                $this->session->remove('maxposter.dac.distributorEmployeeId');
                 $this->session->remove('maxposter.dac.settings');
                 return;
             }
@@ -82,6 +83,7 @@ class SettingsListener
                 $this->session->remove('maxposter.dac.settings');
                 $this->session->remove('maxposter.dac.dealerEmployeeId');
                 $this->session->remove('maxposter.dac.holdingEmployeeId');
+                $this->session->remove('maxposter.dac.distributorEmployeeId');
                 $this->session->set('maxposter.dac.user', $token->getUsername());
             }
 
@@ -89,12 +91,14 @@ class SettingsListener
                 $token->getUser() &&
                 (
                     $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '') ||
-                    $token->getUser()->getCurrentHoldingEmployeeId() != $this->session->get('maxposter.dac.holdingEmployeeId', '')
+                    $token->getUser()->getCurrentHoldingEmployeeId() != $this->session->get('maxposter.dac.holdingEmployeeId', '') ||
+                    $token->getUser()->getCurrentDistributorEmployeeId() != $this->session->get('maxposter.dac.distributorEmployeeId', '')
                 )
             ) {
                 $this->session->remove('maxposter.dac.settings');
                 $this->session->set('maxposter.dac.dealerEmployeeId', $token->getUser()->getCurrentDealerEmployeeId());
                 $this->session->set('maxposter.dac.holdingEmployeeId', $token->getUser()->getCurrentHoldingEmployeeId());
+                $this->session->set('maxposter.dac.distributorEmployeeId', $token->getUser()->getCurrentDistributorEmployeeId());
             }
         }
 
@@ -113,6 +117,7 @@ class SettingsListener
             $this->session->remove('maxposter.dac.user');
             $this->session->remove('maxposter.dac.dealerEmployeeId');
             $this->session->remove('maxposter.dac.holdingEmployeeId');
+            $this->session->remove('maxposter.dac.distributorEmployeeId');
             $this->session->remove('maxposter.dac.settings');
         }
 
