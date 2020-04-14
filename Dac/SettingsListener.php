@@ -73,11 +73,8 @@ class SettingsListener
             if ($token->isAuthenticated() && (!$this->authChecker->isGranted('IS_AUTHENTICATED_REMEMBERED'))) {
                 $this->session->remove('maxposter.dac.user');
                 $this->session->remove('maxposter.dac.dealerId');
-                $this->session->remove('maxposter.dac.dealerEmployeeId'); //FIXME выпилить в max-19273
                 $this->session->remove('maxposter.dac.holdingId');
-                $this->session->remove('maxposter.dac.holdingEmployeeId'); //FIXME выпилить в max-19326
                 $this->session->remove('maxposter.dac.distributorId');
-                $this->session->remove('maxposter.dac.distributorEmployeeId'); //FIXME выпилить в max-19354
                 $this->session->remove('maxposter.dac.settings');
                 return;
             }
@@ -85,11 +82,8 @@ class SettingsListener
             if ($token->getUsername() != $this->session->get('maxposter.dac.user', '')) {
                 $this->session->remove('maxposter.dac.settings');
                 $this->session->remove('maxposter.dac.dealerId');
-                $this->session->remove('maxposter.dac.dealerEmployeeId'); //FIXME выпилить в max-19273
                 $this->session->remove('maxposter.dac.holdingId');
-                $this->session->remove('maxposter.dac.holdingEmployeeId'); //FIXME выпилить в max-19326
                 $this->session->remove('maxposter.dac.distributorId');
-                $this->session->remove('maxposter.dac.distributorEmployeeId'); //FIXME выпилить в max-19354
                 $this->session->set('maxposter.dac.user', $token->getUsername());
             }
 
@@ -97,20 +91,14 @@ class SettingsListener
                 $token->getUser() &&
                 (
                     $token->getUser()->getCurrentDealerId() != $this->session->get('maxposter.dac.dealerId', '') ||
-                    $token->getUser()->getCurrentDealerEmployeeId() != $this->session->get('maxposter.dac.dealerEmployeeId', '') || //FIXME выпилить в max-19273
                     $token->getUser()->getCurrentHoldingId() != $this->session->get('maxposter.dac.holdingId', '') ||
-                    $token->getUser()->getCurrentHoldingEmployeeId() != $this->session->get('maxposter.dac.holdingEmployeeId', '') || //FIXME выпилить в max-19326
-                    $token->getUser()->getCurrentDistributorId() != $this->session->get('maxposter.dac.distributorId', '') ||
-                    $token->getUser()->getCurrentDistributorEmployeeId() != $this->session->get('maxposter.dac.distributorEmployeeId', '') //FIXME выпилить в max-19354
+                    $token->getUser()->getCurrentDistributorId() != $this->session->get('maxposter.dac.distributorId', '')
                 )
             ) {
                 $this->session->remove('maxposter.dac.settings');
                 $this->session->set('maxposter.dac.dealerId', $token->getUser()->getCurrentDealerId());
-                $this->session->set('maxposter.dac.dealerEmployeeId', $token->getUser()->getCurrentDealerEmployeeId()); //FIXME выпилить в max-19273
                 $this->session->set('maxposter.dac.holdingId', $token->getUser()->getCurrentHoldingId());
-                $this->session->set('maxposter.dac.holdingEmployeeId', $token->getUser()->getCurrentHoldingEmployeeId()); //FIXME выпилить в max-19326
                 $this->session->set('maxposter.dac.distributorId', $token->getUser()->getCurrentDistributorId());
-                $this->session->set('maxposter.dac.distributorEmployeeId', $token->getUser()->getCurrentDistributorEmployeeId()); //FIXME выпилить в max-19354
             }
         }
 
@@ -128,11 +116,8 @@ class SettingsListener
         if ($this->dac->isSessionEnabled()) {
             $this->session->remove('maxposter.dac.user');
             $this->session->remove('maxposter.dac.dealerId');
-            $this->session->remove('maxposter.dac.dealerEmployeeId'); //FIXME выпилить в max-19273
             $this->session->remove('maxposter.dac.holdingId');
-            $this->session->remove('maxposter.dac.holdingEmployeeId'); //FIXME выпилить в max-19326
             $this->session->remove('maxposter.dac.distributorId');
-            $this->session->remove('maxposter.dac.distributorEmployeeId'); //FIXME выпилить в max-19354
             $this->session->remove('maxposter.dac.settings');
         }
 
